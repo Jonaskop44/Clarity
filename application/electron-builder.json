@@ -1,0 +1,15 @@
+{
+  "appId": "com.jonaskop44.clarity",
+  "files": ["dist-electron", "dist-react"],
+  "icon": "./public/icon/favicon.png",
+  "mac": {
+    "target": "dmg"
+  },
+  "linux": {
+    "target": "AppImage",
+    "category": "Utility"
+  },
+  "win": {
+    "target": ["portable", "msi"]
+  }
+}
