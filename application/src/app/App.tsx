@@ -10,7 +10,7 @@ function App() {
           className="p-4 bg-black text-white rounded-lg shadow-lg hover:bg-gray-800 transition duration-300"
           onClick={() => setCount((count) => count + 1)}
         >
-          count is {count}
+          count is {count} !
         </button>
       </div>
     </>
