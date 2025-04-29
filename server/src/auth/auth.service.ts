@@ -5,16 +5,15 @@ import {
 } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { compare } from 'bcrypt';
-import { LoginDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
   constructor(private userService: UserService) {}
 
-  async validateUser(dto: LoginDto) {
-    const user = await this.userService.getUserByEmail(dto.email);
+  async validateUser(email: string, password: string) {
+    const user = await this.userService.getUserByEmail(email);
     if (!user) throw new NotFoundException('User not found');
-    const isPasswordValid = await compare(dto.password, user.password);
+    const isPasswordValid = await compare(password, user.password);
     if (!isPasswordValid)
       throw new UnauthorizedException('Invalid credentials!');
 
