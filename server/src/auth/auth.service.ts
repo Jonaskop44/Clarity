@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { compare } from 'bcrypt';
+import { LoginDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,5 +19,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials!');
 
     return { id: user.id };
+  }
+
+  async login(dto: LoginDto) {
+    const user = await this.userService.getUserByEmail(dto.email);
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 }
