@@ -8,11 +8,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  VIP
+  USER
+}
+
 model User {
   id        String   @id @default(cuid())
   username  String
   email     String   @unique
   password  String
+  role      Role     @default(USER)
   githubId  String?  @unique
   discordId String?  @unique
   createdAt DateTime @default(now())
