@@ -6,10 +6,16 @@ import {
 import { UserService } from 'src/user/user.service';
 import { compare } from 'bcrypt';
 import { LoginDto } from './dto/auth.dto';
+import { AuthJwtPayload } from './types/auth-jwtPayload';
+import { JwtService } from '@nestjs/jwt';
+import { use } from 'passport';
 
 @Injectable()
 export class AuthService {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private jwtService: JwtService,
+  ) {}
 
   async validateUser(email: string, password: string) {
     const user = await this.userService.getUserByEmail(email);
@@ -23,7 +29,17 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = await this.userService.getUserByEmail(dto.email);
+
+    const payload: AuthJwtPayload = {
+      id: user.id,
+      sub: { username: user.username, email: user.email },
+    };
+    const accessToken = this.jwtService.sign(payload);
+
     const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return {
+      user: userWithoutPassword,
+      accessToken,
+    };
   }
 }

@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/user.dto';
 import { hash } from 'bcrypt';
@@ -35,6 +39,8 @@ export class UserService {
         email,
       },
     });
+
+    if (!user) throw new NotFoundException('User not found');
 
     return user;
   }
