@@ -31,15 +31,26 @@ export class AuthService {
     return { id: user.id };
   }
 
-  async login(dto: LoginDto) {
-    const user = await this.userService.getUserByEmail(dto.email);
-
+  async generateTokens(user: User) {
     const payload: AuthJwtPayload = {
       id: user.id,
       sub: { username: user.username, email: user.email },
     };
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, this.refreshTokenConfig);
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, this.refreshTokenConfig),
+    ]);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async login(dto: LoginDto) {
+    const user = await this.userService.getUserByEmail(dto.email);
+    const { accessToken, refreshToken } = await this.generateTokens(user);
 
     const { password, ...userWithoutPassword } = user;
     return {
@@ -51,16 +62,25 @@ export class AuthService {
     };
   }
 
-  async refreshToken(user: User, token: string) {
+  async refreshToken(user: User) {
     const userFromDb = await this.userService.getUserById(user.id);
+    const { accessToken, refreshToken } = await this.generateTokens(userFromDb);
 
-    const payload: AuthJwtPayload = {
-      id: userFromDb.id,
-      sub: { username: userFromDb.username, email: userFromDb.email },
-    };
-    const accessToken = this.jwtService.sign(payload);
     return {
       accessToken,
+      refreshToken,
     };
+  }
+
+  async validateRefreshToken(userId: string, token: string) {
+    const userFromDb = await this.userService.getUserById(userId);
+    if (userFromDb) {
+      const isTokenValid = await this.jwtService.verifyAsync(token, {
+        secret: this.refreshTokenConfig.secret,
+      });
+      if (!isTokenValid) throw new UnauthorizedException('Invalid token');
+
+      return userFromDb;
+    }
   }
 }
