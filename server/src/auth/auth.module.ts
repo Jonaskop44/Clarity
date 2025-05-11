@@ -9,12 +9,15 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import refreshJwtConfig from './config/refresh-jwt.config';
 import { RefreshJwtStrategy } from './strategies/refresh.strategy';
+import githubOauthConfig from './config/github-oauth.config';
+import { GithubStrategy } from './strategies/github.strategy';
 
 @Module({
   imports: [
     JwtModule.registerAsync(jwtConfig.asProvider()),
     ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(refreshJwtConfig),
+    ConfigModule.forFeature(githubOauthConfig),
   ],
   controllers: [AuthController],
   providers: [
@@ -23,6 +26,7 @@ import { RefreshJwtStrategy } from './strategies/refresh.strategy';
     LocalStrategy,
     JwtStrategy,
     RefreshJwtStrategy,
+    GithubStrategy,
   ],
 })
 export class AuthModule {}

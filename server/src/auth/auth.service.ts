@@ -1,8 +1,9 @@
 import {
   Inject,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
+  ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { compare } from 'bcrypt';
@@ -24,6 +25,7 @@ export class AuthService {
 
   async validateUser(email: string, password: string) {
     const user = await this.userService.getUserByEmail(email);
+    if (!user) throw new NotFoundException('User not found!');
     const isPasswordValid = await compare(password, user.password);
     if (!isPasswordValid)
       throw new UnauthorizedException('Invalid credentials!');
@@ -50,6 +52,7 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = await this.userService.getUserByEmail(dto.email);
+    if (!user) throw new NotFoundException('User not found!');
     const { accessToken, refreshToken } = await this.generateTokens(user);
 
     const { password, ...userWithoutPassword } = user;
@@ -82,5 +85,34 @@ export class AuthService {
 
       return userFromDb;
     }
+  }
+
+  async handleGithubLogin(profile: any) {
+    const email = profile.emails[0].value;
+    const username = profile.username;
+
+    let user = await this.userService.getUserByEmail(email);
+
+    if (!user) {
+      await this.userService.createUser({
+        email,
+        username,
+        password: '',
+      });
+
+      user = await this.userService.getUserByEmail(email);
+    }
+
+    const tokens = await this.generateTokens(user);
+    const { accessToken, refreshToken } = tokens;
+    const { password, ...userWithoutPassword } = user;
+
+    return {
+      user: userWithoutPassword,
+      tokens: {
+        accessToken,
+        refreshToken,
+      },
+    };
   }
 }
